@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+        integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+    <title>Estimasi Harga Eceran Jagung</title>
+</head>
+
+<body>
+    <div class="container">
+        <div class="my-3">
+            <h1 class="text-center font-weight-bold">Estimasi Harga Eceran Jagung</h1>
+        <h2 class="text-center font-weight-light ">Dinas Pertanian Kabupaten Semarang</h2>
+        </div>
+        <form action="" id="post-form" autocomplete="OFF">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="Luas_Panen">Luas Panen (Ha)</label>
+                <input type="text" class="form-control" id="Luas_Panen">
+            </div>
+            <div class="form-group">
+                <label for="Jumlah_Panen">Jumlah Panen (Ton)</label>
+                <input type="text" class="form-control" id="Jumlah_Panen">
+            </div>
+            <div class="form-group">
+                <label for="Produktivitas">Produktivitas (Ton/Ha)</label>
+                <input type="text" class="form-control" id="Produktivitas">
+            </div>
+            <div class="form-group">
+                <label for="Curah_Hujan">Curah Hujan (Mm)</label>
+                <input type="text" class="form-control" id="Curah_Hujan">
+            </div>
+            <button id="process" type="submit" class="btn btn-primary">Lakukan estimasi</button>
+        </form>
+        <div class="container">
+        <div class="my-3">
+           <h2>Hasil (Rupiah): <span id="prediction"></span></h2>
+        </div>
+    </div>
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"
+    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+    integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
+    crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"
+    integrity="sha384-+YQ4JLhjyBLPDQt//I+STsc9iw4uQqACwlvpslubQzn4u2UU2UFM80nGisd026JF"
+    crossorigin="anonymous"></script>
+<script>
+
+    $('#process').click(function () {
+
+        $(document).on('submit', '#post-form', function (e) {
+            e.preventDefault();
+            $.ajax({
+                type: 'POST',
+                url: 'http://127.0.0.1:8000/form/submit',
+                data: {
+                    Luas_Panen: $('#Luas_Panen').val(),
+                    Jumlah_Panen: $('#Jumlah_Panen').val(),
+                    Produktivitas: $('#Produktivitas').val(),
+                    Curah_Hujan: $('#Curah_Hujan').val(),
+                    csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+                    action: 'POST'
+                },
+                beforeSend: function () { // Before we send the request, remove the .hidden class from the spinner and default to inline-block.
+                    $('#loader').removeClass('hidden')
+                },
+                success: function (json) {
+
+                    document.forms["post-form"].reset();
+                    document.getElementById("prediction").innerHTML = json['estimation']
+                },
+                complete: function () { // Set our complete callback, adding the .hidden class and hiding the spinner.
+                    $('#loader').addClass('hidden')
+                },
+                error: function (xhr, errmsg, err) {
+                    console.error("Request timeout :(");
+                    alert('Something wrong!')
+                }
+            });
+        });
+    });
+</script>
+
+</html>
